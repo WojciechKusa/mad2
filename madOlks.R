@@ -1,45 +1,64 @@
-setwd("D:/maratonAD/prepared_data2")
-teksty <- read.delim("ARTICLES_text.dat", encoding="UTF-8", nrows=4)
-teksty
-dim(teksty)
-Wyniki <- read.csv("D:/maratonAD/mad2/Wyniki.csv", sep=";")
-> length(unique(Wyniki[,1]))
-[1] 689
-ocenione <- unique(Wyniki[,1])
-
-
-gsub("[.]", "", "asjgdj. kjdh. jjf jd.")
-removePunctuation("ksdhfjk, ihyd?")
-[1] "ksdhfjk ihyd"
-
-
 library(tm)
-tagFilesPath <- "D:/maratonAD/prepared_data2/docs_collection_raw"
-tagFiles <- list.files(path=tagFilesPath,full.names=T,recursive=F)
+library(dplyr)
+library(rpart)
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
 
 
-library(stringi)
-stri_extract_all_regex(tagFiles, pattern = "[0-9][0-9]+", simplify = TRUE)[,1]
+# nums - numery artykulow do wczytania
+nums <- ocenione
 
+# wczytuje pliki
 tagFilesPath <- "D:/maratonAD/prepared_data2/docs_collection_raw/%s.txt"
-sciezki <- sprintf(tagFilesPath, ocenione)
+sciezki <- sprintf(tagFilesPath, nums)
+allFiles = rapply(as.list(sciezki), readLines, encoding = "UTF-8")
 
-allFiles = lapply(sciezki, readLines, encoding = "UTF-8")
-allFiles[[1]]
-
+# oczyszcza ze znakow interpunkcyjnych
 pureTexts <- lapply(allFiles,removePunctuation)
 
-
-strsplit("ksdhf dskalfh alsdjf"," ")
-
+# oblicza srednia dlugos slowa
 dlugoscSlow <- c()
-for (i in 1:689){
+for (i in 1:length(pureTexts)){
         splited <- strsplit(pureTexts[[i]], " ")
         dlugoscSlow[i] <- mean(rapply(as.list(splited[[1]]),
-                                     nchar))
+                                      nchar))
 }
-dlugoscSlow
+##dlugoscSlow - wektor srednich dlugosci slow
 
 
+
+
+## czestosc wystepowania slow w trybie rozkazujacym
+
+# wczytuje pliki
+tagFilesPath <- "D:/maratonAD/prepared_data2/docs_collection_basectag/%s.txt.bctag"
+sciezki <- sprintf(tagFilesPath, nums)
+allFiles3 = lapply(sciezki, readLines, encoding = "UTF-8")
+
+# obliocza czestosc
+impt <- function(a){
+        ileImpt<-0
+        for (i in 1:length(a)[1]){
+                if("impt" %in% strsplit(as.character(a[i]),":")[[1]]){
+                        ileImpt <- ileImpt+1
+                }
+        }
+        ileImpt/length(a)
+}
+
+### imptWyniki - wektor czestowci trybu rozkazujacego w artykulach
+imptWyniki <- rapply(as.list(allFiles3),impt)
+
+#tabela
+tabela <- data.frame(id = nums, 
+                         srednie = dlugoscSlow,
+                         impt = imptWyniki,
+                         #a = classification_with_zipf$fit,
+                         tabloid = user_classification_count$is_tabloid)
+
+## drzewo
+tree <- rpart(tabloid ~ srednie + impt, data = tabela)
+fancyRpartPlot(tree)
 
 
