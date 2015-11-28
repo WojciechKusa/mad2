@@ -33,13 +33,12 @@ pureTexts <- lapply(allFiles,removePunctuation)
 strsplit("ksdhf dskalfh alsdjf"," ")
 
 dlugoscSlow <- c()
-for (i in 689){
+for (i in 1:689){
         splited <- strsplit(pureTexts[[i]], " ")
-        lapply(splited[[1]], nchar)
         dlugoscSlow[i] <- mean(rapply(as.list(splited[[1]]),
                                      nchar))
 }
-
+dlugoscSlow
 
 
 
