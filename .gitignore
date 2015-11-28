@@ -1,6 +1,7 @@
 # History files
 .Rhistory
 .Rapp.history
+*.Rdata
 
 # Example code in package build process
 *-Ex.R
@@ -11,3 +12,10 @@
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
+
+# folders with raw data
+docs_collection*
+
+# txt files with raw data
+*.txt
+*.dat
